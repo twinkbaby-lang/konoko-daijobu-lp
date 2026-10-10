@@ -1,0 +1,53 @@
+name: Import and optimize Canva LP images
+on:
+  push:
+    paths:
+      - .github/workflows/import-canva-assets.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import-images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the three original LP images and convert to WebP
+        shell: bash
+        run: |
+          python -m pip install --quiet Pillow
+          python - <<'PY'
+          from io import BytesIO
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+          from PIL import Image
+
+          root = "https://konoko-daijobu.my.canva.site/_assets/media/"
+          assets = [
+              ("3b3369b7361002a0e4a9e61271fdc53b.png", "hero.webp", 850, 78),
+              ("499a5089691e3f21b861786d6decd80b.jpg", "gift-book.webp", 600, 76),
+              ("3cea92740eea02f5aadb65cbfa626131.jpg", "instructor.webp", 480, 78),
+          ]
+          dest = Path("images")
+          dest.mkdir(exist_ok=True)
+          for filename, name, width, quality in assets:
+              url = root + filename
+              req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+              with urlopen(req, timeout=45) as response:
+                  data = response.read()
+              img = Image.open(BytesIO(data)).convert("RGB")
+              img.thumbnail((width, 1600), Image.Resampling.LANCZOS)
+              img.save(dest / name, "WEBP", quality=quality, method=6)
+              print(name, (dest / name).stat().st_size, "bytes")
+          PY
+      - name: Commit optimized assets
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add images/
+          if git diff --cached --quiet; then
+            echo "No changed assets"
+            exit 0
+          fi
+          git commit -m "Add optimized images from original Canva LP"
+          git push
