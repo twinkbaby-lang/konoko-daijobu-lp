@@ -111,3 +111,9 @@ footer{text-align:center;padding:24px;background:#6c514b;color:#f6e8e3;font-size
 .hero-subtitle{font-size:12px}
 .hero-gift-label{font-size:11px}
 }
+
+/* 10/24開催情報のすぐ下で、育児中のママが参加条件を確認できる短い案内 */
+.participation-notes{list-style:none;display:grid;gap:5px;width:max-content;max-width:100%;margin:12px auto 0;padding:0;color:#76554f;font-size:13px;font-weight:500;line-height:1.65}
+.participation-notes li{display:flex;align-items:baseline;gap:7px;text-align:left}
+.participation-notes li::before{content:"✓";color:#aa7077;font-weight:600;flex:none}
+@media(max-width:440px){.participation-notes{font-size:12px;margin-top:10px;gap:3px}}
